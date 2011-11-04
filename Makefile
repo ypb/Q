@@ -8,6 +8,7 @@ TARG=Q
 GOFILES=\
 	main.go\
 	hold.go\
+	uniq.go\
 
 CLEANFILES += *.tdb
 

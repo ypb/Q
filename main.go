@@ -7,8 +7,6 @@ package main
 import (
 	"os"
 	"strings"
-	"time"
-	"strconv"
 	tdb "ypb/github.com/ypb/gotdb"
 )
 
@@ -90,23 +88,25 @@ func main() {
 	// db := Opendb()
 	var err tdb.Error
 
-	time := time.UTC()
-	// stamp := time.Format("2006 Jan 02 | 05 04 15  MST (-0700)")
-	stamp := strconv.Itob64(time.Seconds(), 36)
-
-	// TODO tdb.Exists()
-	if err = db[META+EXT].Store(NOW, stamp, tdb.MODIFY); err != nil {
-		// presumably it yet exists not...
-		if err = db[META+EXT].Store(NOW, stamp, tdb.INSERT); err != nil {
-			exit(err)
-		}
+	tsr, oops := Uniq() // TimeStampeR
+	if oops != nil {
+		println(oops.String())
+		// exit(oops) // DOOPS! TODO... tdb.NewError(int,string) tdb.Error
+		os.Exit(-1)
 	}
 
 	var now string
+	var cnt string
 	if now, err = db[META+EXT].Fetch(NOW); err != nil {
 		exit(err)
 	}
-	println("# now:", now)
+	if cnt, err = db[META+EXT].Fetch(CNT); err != nil {
+		exit(err)
+	}
+	println("# now:", now+"."+cnt)
+	tsr.Tick()
+	println("# now++:", tsr.Tick())
+
 	q.Heldby(P(NOW)).Hold(P(now))
 
 	if argc <= 1 {
@@ -116,9 +116,13 @@ func main() {
 			cmd.Print()
 		} else {
 			println(os.Args[1], "uknown command")
+			// TOFIX... not calling done() this way? MEH(tm)
 			os.Exit(-1)
+			return // SUCKS...
 		}
 	}
+	// testing 1.. 2.. 3..
+	tsr.Tack()
 	return
 }
 
